@@ -6,7 +6,6 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 public class RoleDto {
