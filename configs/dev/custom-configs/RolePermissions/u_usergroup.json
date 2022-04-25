@@ -1,0 +1,9 @@
+{
+    "roleName":"u_usergroup",
+    "permissions": [
+        {
+            "action":"VIEW",
+            "resource":"com_liferay_users_admin_web_portlet_UsersAdminPortlet"
+        }
+    ]
+}

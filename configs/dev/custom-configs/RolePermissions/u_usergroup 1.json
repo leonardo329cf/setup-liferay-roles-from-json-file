@@ -1,0 +1,13 @@
+{
+    "roleName":"u_usergroup1",
+    "permissions": [
+        {
+            "action":"VIEW",
+            "resource":"com_liferay_users_admin_web_portlet_UsersAdminPortlet"
+        },
+        {
+            "action":"VIEW",
+            "resource":"com_liferay_user_groups_admin_web_portlet_UserGroupsAdminPortlet"
+        }
+    ]
+}
