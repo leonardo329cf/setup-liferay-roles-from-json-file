@@ -52,28 +52,28 @@ public class RolePermissionConfigurator {
 		File configFolder = new File(configFolderFullPath);
 		
 		for(File configFile : configFolder.listFiles()) {
-			configRoleFromFile(configFile);
-		}
-	}
-	
-	private void configRoleFromFile(File file) {
-		if(file.isFile() && 
-				FileUtilities.getFileExtension(file).equals("json")) {
 			
-			try {
-				JSONObject roleJson = FileUtilities.fileToJSONObject(file);
+			if(configFile.isFile() && 
+					FileUtilities.getFileExtension(configFile).equals("json")) {
 				
-				RoleDto roleDto = new RoleDto(roleJson);
-				
-				configRole(_portal.getDefaultCompanyId(), roleDto);
-			} catch (Exception e) {
-				_log.error("Failed to configure Role for file: " + file.getPath(), e);
+				configRoleFromJSONFile(configFile);
 			}
-			
 		}
 	}
 	
-	private void configRole(long companyId, RoleDto roleDto) 
+	private void configRoleFromJSONFile(File file) {			
+		try {
+			JSONObject roleJson = FileUtilities.fileToJSONObject(file);
+			
+			RoleDto roleDto = new RoleDto(roleJson);
+			
+			configRole(_portal.getDefaultCompanyId(), roleDto);
+		} catch (Exception e) {
+			_log.error("Failed to configure Role for file: " + file.getPath(), e);
+		}
+	}
+	
+	public void configRole(long companyId, RoleDto roleDto) 
 			throws PortalException {
 		
 		int scope = ResourceConstants.SCOPE_COMPANY;
