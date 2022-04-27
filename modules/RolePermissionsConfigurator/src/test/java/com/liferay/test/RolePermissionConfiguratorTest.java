@@ -9,6 +9,7 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.ResourceAction;
 import com.liferay.portal.kernel.model.ResourceConstants;
+import com.liferay.portal.kernel.model.ResourcePermission;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.service.ResourceActionLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
@@ -16,6 +17,7 @@ import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.util.Portal;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -44,7 +46,8 @@ public class RolePermissionConfiguratorTest {
 	}
 	
 	@Test
-	public void configRole_callsAddResourcePermission_after_addingResourceAction() throws PortalException {
+	public void configuerRole_callsAddResourcePermission_after_addingResourceAction()
+			throws PortalException {
 	
 		long companyId = 1L;
 		
@@ -77,7 +80,7 @@ public class RolePermissionConfiguratorTest {
 				).thenReturn(_resourceAction);
 			
 		
-		_rolePermissionConfigurator.configRole(companyId, roleDto);
+		_rolePermissionConfigurator.configureRole(companyId, roleDto);
 		
 		
 		Mockito.verify(_resourcePermissionLocalService)
@@ -91,7 +94,8 @@ public class RolePermissionConfiguratorTest {
 	}
 	
 	@Test
-	public void configRole_callsAddResourceAction_when_noSuchResourceActionException() throws PortalException {
+	public void configuerRole_callsAddResourceAction_when_noSuchResourceActionException()
+			throws PortalException {
 	
 		long companyId = 1L;
 		
@@ -118,7 +122,7 @@ public class RolePermissionConfiguratorTest {
 						Mockito.anyString())).thenThrow(new NoSuchResourceActionException());
 		
 			
-		_rolePermissionConfigurator.configRole(companyId, roleDto);
+		_rolePermissionConfigurator.configureRole(companyId, roleDto);
 		
 		
 		Mockito.verify(_resourceActionLocalService)
@@ -129,7 +133,8 @@ public class RolePermissionConfiguratorTest {
 	}
 	
 	@Test
-	public void configRole_callsAddResourcePermission_when_resourceActionExists() throws PortalException {
+	public void configuerRole_callsAddResourcePermission_when_resourceActionExists()
+			throws PortalException {
 	
 		long companyId = 1L;
 		
@@ -156,7 +161,7 @@ public class RolePermissionConfiguratorTest {
 						Mockito.anyString())).thenReturn(_resourceAction);
 		
 			
-		_rolePermissionConfigurator.configRole(companyId, roleDto);
+		_rolePermissionConfigurator.configureRole(companyId, roleDto);
 		
 		
 		Mockito.verify(_resourcePermissionLocalService)
@@ -169,9 +174,56 @@ public class RolePermissionConfiguratorTest {
 				actionKey);
 	}
 	
+	@Test
+	public void configuerRole_callsDeleteResourcePermission_when_roleHasResourcePermission()
+			throws PortalException {
+	
+		long companyId = 1L;
+		
+		String roleName = "roleName";
+		long roleId = 1L;
+		String actionKey = "actionKey";
+		String resource = "resource";
+		
+		List<ResourcePermission> resourcePermissionList = new ArrayList<ResourcePermission>();
+		resourcePermissionList.add(_resourcePermission);
+		
+		PermissionDto permission = new PermissionDto(actionKey, resource);
+		
+		ArrayList<PermissionDto> permissions = new ArrayList<PermissionDto>();
+		permissions.add(permission);
+		
+		RoleDto roleDto = new RoleDto(roleName, permissions);
+		
+		Mockito.when(_roleLocalService.fetchRole(companyId, roleName)).thenReturn(_role);
+		
+		Mockito.when(_role.getCompanyId()).thenReturn(companyId);
+		
+		Mockito.when(_role.getRoleId()).thenReturn(roleId);
+		
+		Mockito.when(_resourceActionLocalService.getResourceAction(
+						Mockito.anyString(), 
+						Mockito.anyString()))
+			.thenReturn(_resourceAction);
+		
+		Mockito.when(_resourcePermissionLocalService
+			.getRoleResourcePermissions(roleId))
+			.thenReturn(resourcePermissionList);
+		
+		
+		_rolePermissionConfigurator.configureRole(companyId, roleDto);
+		
+		
+		Mockito.verify(_resourcePermissionLocalService)
+			.deleteResourcePermission(_resourcePermission);
+	}
+	
 	private static MockedStatic<LogFactoryUtil> logFactoryUtil;
 	
 	private static Log _log;
+	
+	@Mock
+	private ResourcePermission _resourcePermission;
 	
 	@Mock
 	private ResourceAction _resourceAction;

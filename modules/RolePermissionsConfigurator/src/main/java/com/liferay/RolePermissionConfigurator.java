@@ -8,6 +8,7 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.ResourceConstants;
+import com.liferay.portal.kernel.model.ResourcePermission;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.service.ResourceActionLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
@@ -38,13 +39,13 @@ public class RolePermissionConfigurator {
 	@Activate
 	@Modified
 	protected void activate(Map<Object, Object> properties) throws Exception {		
-		configRolesFromConfigFolderRelativePath(CONFIG_FOLDER);
+		configureRolesFromConfigFolderRelativePath(CONFIG_FOLDER);
 	}
 	
 	/**
 	 * @param path - receives the configurations folder's relative path to liferay home 
 	 */
-	private void configRolesFromConfigFolderRelativePath(String configFolderRelativePath) {
+	private void configureRolesFromConfigFolderRelativePath(String configFolderRelativePath) {
 		String configFolderFullPath = 
 				_portal.getPortalProperties().
 				getProperty("liferay.home") + "/" + configFolderRelativePath;
@@ -56,24 +57,24 @@ public class RolePermissionConfigurator {
 			if(configFile.isFile() && 
 					FileUtilities.getFileExtension(configFile).equals("json")) {
 				
-				configRoleFromJSONFile(configFile);
+				configureRoleFromJSONFile(configFile);
 			}
 		}
 	}
 	
-	private void configRoleFromJSONFile(File file) {			
+	private void configureRoleFromJSONFile(File file) {			
 		try {
 			JSONObject roleJson = FileUtilities.fileToJSONObject(file);
 			
 			RoleDto roleDto = new RoleDto(roleJson);
 			
-			configRole(_portal.getDefaultCompanyId(), roleDto);
+			configureRole(_portal.getDefaultCompanyId(), roleDto);
 		} catch (Exception e) {
 			_log.error("Failed to configure Role for file: " + file.getPath(), e);
 		}
 	}
 	
-	public void configRole(long companyId, RoleDto roleDto) 
+	public void configureRole(long companyId, RoleDto roleDto) 
 			throws PortalException {
 		
 		int scope = ResourceConstants.SCOPE_COMPANY;
@@ -84,20 +85,10 @@ public class RolePermissionConfigurator {
 		
 		String primKey = String.valueOf(role.getCompanyId());
 		
+		_removeAllResourcePermissionsFromRole(role.getRoleId());
+		
 		for(PermissionDto permission : roleDto.getPermissions()) {
-			try {
-				_resourceActionLocalService.getResourceAction(
-						permission.getResourceClass(), 
-						permission.getActionKey());
-			}
-			catch (NoSuchResourceActionException nsrae) {
-				_resourceActionLocalService.addResourceAction(
-						permission.getResourceClass(), 
-						permission.getActionKey(),
-						1);
-
-				_resourceActionLocalService.checkResourceActions();
-			}
+			_createResourceActionIfNeeded(permission);
 			
 			_resourcePermissionLocalService.addResourcePermission(
 					companyId, 
@@ -111,6 +102,31 @@ public class RolePermissionConfigurator {
 					role, 
 					permission.getResourceClass(), 
 					permission.getActionKey());
+		}
+	}
+	
+	private void _removeAllResourcePermissionsFromRole(long roleId) {
+		_resourcePermissionLocalService
+			.getRoleResourcePermissions(roleId)
+			.forEach(
+				(ResourcePermission resourcePermission) -> 
+				_resourcePermissionLocalService.deleteResourcePermission(resourcePermission)
+			);
+	}
+
+	private void _createResourceActionIfNeeded(PermissionDto permission) throws PortalException {
+		try {
+			_resourceActionLocalService.getResourceAction(
+					permission.getResourceClass(), 
+					permission.getActionKey());
+		}
+		catch (NoSuchResourceActionException nsrae) {
+			_resourceActionLocalService.addResourceAction(
+					permission.getResourceClass(), 
+					permission.getActionKey(),
+					1);
+
+			_resourceActionLocalService.checkResourceActions();
 		}
 	}
 	
