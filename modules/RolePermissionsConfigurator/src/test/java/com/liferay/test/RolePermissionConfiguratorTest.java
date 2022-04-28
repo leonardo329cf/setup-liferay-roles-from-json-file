@@ -191,7 +191,7 @@ public class RolePermissionConfiguratorTest {
 	}
 	
 	@Test
-	public void configuerRole_callsDeleteResourcePermission_when_roleHasResourcePermissions()
+	public void configuerRole_callsDeleteRoleResourcePermissions_when_roleHasResourcePermissions()
 			throws PortalException {
 		
 		long companyId = 1L;
