@@ -2,12 +2,12 @@
     "roleName":"u_usergroup1",
     "permissions": [
         {
-            "action":"VIEW",
-            "resource":"com_liferay_users_admin_web_portlet_UsersAdminPortlet"
+            "action":"VIEW_CONTROL_PANEL",
+            "resource":"90"
         },
         {
-            "action":"VIEW",
-            "resource":"com_liferay_user_groups_admin_web_portlet_UserGroupsAdminPortlet"
+            "action":"ADD_ORGANIZATION",
+            "resource":"90"
         }
     ]
 }
