@@ -7,9 +7,11 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.ResourcePermission;
 import com.liferay.portal.kernel.model.Role;
+import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.ResourceActionLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
@@ -68,14 +70,16 @@ public class RolePermissionConfigurator {
 			
 			RoleDto roleDto = new RoleDto(roleJson);
 			
-			configureRole(_portal.getDefaultCompanyId(), roleDto);
+			configureRole(roleDto);
 		} catch (Exception e) {
 			_log.error("Failed to configure Role for file: " + file.getPath(), e);
 		}
 	}
 	
-	public void configureRole(long companyId, RoleDto roleDto) 
+	public void configureRole(RoleDto roleDto) 
 			throws PortalException {
+		
+		long companyId = getDefaultCompanyId();
 		
 		int scope = ResourceConstants.SCOPE_COMPANY;
 		
@@ -140,12 +144,25 @@ public class RolePermissionConfigurator {
 		_log.info(message);
 	}
 	
+	private long getDefaultCompanyId() {
+		long companyId;
+		try {
+			companyId = _portal.getDefaultCompanyId();
+		} catch(ArrayIndexOutOfBoundsException e) {
+			Company company = _companyLocalService.getCompanies().get(0);
+			companyId = company.getCompanyId();
+		}
+		return companyId;
+	}
 	
 	
 	private static final Log _log = LogFactoryUtil.getLog(
 			RolePermissionConfigurator.class);
 	
 	private static final String CONFIG_FOLDER="custom-configs/RolePermissions";
+	
+	@Reference
+    private CompanyLocalService _companyLocalService;
 	
 	@Reference
 	private Portal _portal;

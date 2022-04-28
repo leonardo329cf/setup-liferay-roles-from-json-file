@@ -7,10 +7,12 @@ import com.liferay.portal.kernel.exception.NoSuchResourceActionException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.ResourceAction;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.ResourcePermission;
 import com.liferay.portal.kernel.model.Role;
+import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.ResourceActionLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
@@ -23,6 +25,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
@@ -63,6 +66,8 @@ public class RolePermissionConfiguratorTest {
 		
 		RoleDto roleDto = new RoleDto(roleName, permissions);
 		
+		Mockito.when(_portal.getDefaultCompanyId()).thenReturn(companyId);
+
 		Mockito.when(_roleLocalService.fetchRole(companyId, roleName)).thenReturn(_role);
 		
 		Mockito.when(_role.getCompanyId()).thenReturn(companyId);
@@ -80,10 +85,17 @@ public class RolePermissionConfiguratorTest {
 				).thenReturn(_resourceAction);
 			
 		
-		_rolePermissionConfigurator.configureRole(companyId, roleDto);
+		_rolePermissionConfigurator.configureRole(roleDto);
 		
+		InOrder inOrder = Mockito.inOrder(_resourceActionLocalService, _resourcePermissionLocalService);
 		
-		Mockito.verify(_resourcePermissionLocalService)
+		inOrder.verify(_resourceActionLocalService)
+		.addResourceAction(
+				resource, 
+				actionKey,
+				1);
+		
+		inOrder.verify(_resourcePermissionLocalService)
 		.addResourcePermission(
 				companyId, 
 				resource,
@@ -111,6 +123,8 @@ public class RolePermissionConfiguratorTest {
 		
 		RoleDto roleDto = new RoleDto(roleName, permissions);
 		
+		Mockito.when(_portal.getDefaultCompanyId()).thenReturn(companyId);
+
 		Mockito.when(_roleLocalService.fetchRole(companyId, roleName)).thenReturn(_role);
 		
 		Mockito.when(_role.getCompanyId()).thenReturn(companyId);
@@ -122,7 +136,7 @@ public class RolePermissionConfiguratorTest {
 						Mockito.anyString())).thenThrow(new NoSuchResourceActionException());
 		
 			
-		_rolePermissionConfigurator.configureRole(companyId, roleDto);
+		_rolePermissionConfigurator.configureRole(roleDto);
 		
 		
 		Mockito.verify(_resourceActionLocalService)
@@ -150,6 +164,8 @@ public class RolePermissionConfiguratorTest {
 		
 		RoleDto roleDto = new RoleDto(roleName, permissions);
 		
+		Mockito.when(_portal.getDefaultCompanyId()).thenReturn(companyId);
+
 		Mockito.when(_roleLocalService.fetchRole(companyId, roleName)).thenReturn(_role);
 		
 		Mockito.when(_role.getCompanyId()).thenReturn(companyId);
@@ -161,7 +177,7 @@ public class RolePermissionConfiguratorTest {
 						Mockito.anyString())).thenReturn(_resourceAction);
 		
 			
-		_rolePermissionConfigurator.configureRole(companyId, roleDto);
+		_rolePermissionConfigurator.configureRole(roleDto);
 		
 		
 		Mockito.verify(_resourcePermissionLocalService)
@@ -175,9 +191,9 @@ public class RolePermissionConfiguratorTest {
 	}
 	
 	@Test
-	public void configuerRole_callsDeleteResourcePermission_when_roleHasResourcePermission()
+	public void configuerRole_callsDeleteResourcePermission_when_roleHasResourcePermissions()
 			throws PortalException {
-	
+		
 		long companyId = 1L;
 		
 		String roleName = "roleName";
@@ -195,6 +211,8 @@ public class RolePermissionConfiguratorTest {
 		
 		RoleDto roleDto = new RoleDto(roleName, permissions);
 		
+		Mockito.when(_portal.getDefaultCompanyId()).thenReturn(companyId);
+		
 		Mockito.when(_roleLocalService.fetchRole(companyId, roleName)).thenReturn(_role);
 		
 		Mockito.when(_role.getCompanyId()).thenReturn(companyId);
@@ -211,11 +229,67 @@ public class RolePermissionConfiguratorTest {
 			.thenReturn(resourcePermissionList);
 		
 		
-		_rolePermissionConfigurator.configureRole(companyId, roleDto);
+		_rolePermissionConfigurator.configureRole(roleDto);
 		
 		
 		Mockito.verify(_resourcePermissionLocalService)
 			.deleteResourcePermission(_resourcePermission);
+	}
+	
+	@Test
+	public void configureRole_callsCompanyLocalService_when_getDefaultCompanyFromPortalThrowsException()
+			throws PortalException {
+		 
+		long companyId = 1L;
+		
+		String roleName = "roleName";
+		long roleId = 1L;
+		String actionKey = "actionKey";
+		String resource = "resource";
+		
+		List<ResourcePermission> resourcePermissionList = new ArrayList<ResourcePermission>();
+		resourcePermissionList.add(_resourcePermission);
+		
+		PermissionDto permission = new PermissionDto(actionKey, resource);
+		
+		ArrayList<PermissionDto> permissions = new ArrayList<PermissionDto>();
+		permissions.add(permission);
+		
+		RoleDto roleDto = new RoleDto(roleName, permissions);
+		
+		
+		Mockito.when(_portal.getDefaultCompanyId()).thenThrow(ArrayIndexOutOfBoundsException.class);
+		
+		
+		Mockito.when(_company.getCompanyId()).thenReturn(companyId);
+		
+		List<Company> companies = new ArrayList<Company>();
+		companies.add(_company);
+		
+		Mockito.when(_companyLocalService.getCompanies()).thenReturn(companies);
+	
+					
+		Mockito.when(_roleLocalService.fetchRole(companyId, roleName)).thenReturn(_role);
+		
+		Mockito.when(_role.getCompanyId()).thenReturn(companyId);
+		
+		Mockito.when(_role.getRoleId()).thenReturn(roleId);
+		
+		Mockito.when(_resourceActionLocalService.getResourceAction(
+						Mockito.anyString(), 
+						Mockito.anyString()))
+			.thenReturn(_resourceAction);
+		
+		Mockito.when(_resourcePermissionLocalService
+			.getRoleResourcePermissions(roleId))
+			.thenReturn(resourcePermissionList);
+		
+		
+		_rolePermissionConfigurator.configureRole(roleDto);
+		
+		
+		Mockito.verify(_companyLocalService)
+			.getCompanies();
 	}
 	
 	private static MockedStatic<LogFactoryUtil> logFactoryUtil;
@@ -243,6 +317,12 @@ public class RolePermissionConfiguratorTest {
 	
 	@Mock
 	private Portal _portal;
+	
+	@Mock
+    private CompanyLocalService _companyLocalService;
+	
+	@Mock
+	private Company _company;
 	
 	@InjectMocks
 	private RolePermissionConfigurator _rolePermissionConfigurator;
