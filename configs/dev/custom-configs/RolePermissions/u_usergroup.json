@@ -2,8 +2,36 @@
     "roleName":"u_usergroup",
     "permissions": [
         {
-            "action":"VIEW",
-            "resource":"com_liferay_users_admin_web_portlet_UsersAdminPortlet"
-        }
+			"action":"VIEW",
+			"resource":"com.liferay.expando.kernel.model.ExpandoColumn"
+		},
+		{
+			"action":"VIEW",
+			"resource":"com_liferay_expando_web_portlet_ExpandoPortlet"
+		},
+		{
+			"action":"VIEW",
+			"resource":"com.liferay.document.library"
+		},
+		{
+			"action":"VIEW",
+			"resource":"com.liferay.document.library.kernel.model.DLFileEntry"
+		},
+		{
+			"action":"VIEW",
+			"resource":"com.liferay.document.library.kernel.model.DLFileEntryType"
+		},
+		{
+			"action":"VIEW",
+			"resource":"com_liferay_document_library_web_portlet_DLAdminPortlet"
+		},
+		{
+			"action":"VIEW",
+			"resource":"com.liferay.document.library.kernel.model.DLFolder"
+		},
+		{
+			"action":"VIEW",
+			"resource":"com.liferay.document.library.kernel.model.DLFileShortcut"
+		}
     ]
 }
