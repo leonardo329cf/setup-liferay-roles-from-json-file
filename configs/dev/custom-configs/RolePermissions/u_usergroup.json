@@ -19,6 +19,10 @@
 		},
 		{
 			"action":"VIEW",
+			"resource":"com.liferay.document.library.kernel.model.DLFileEntryMetadata-com.liferay.dynamic.data.mapping.kernel.DDMStructure"
+		},
+		{
+			"action":"VIEW",
 			"resource":"com.liferay.document.library.kernel.model.DLFileEntryType"
 		},
 		{
@@ -32,6 +36,18 @@
 		{
 			"action":"VIEW",
 			"resource":"com.liferay.document.library.kernel.model.DLFileShortcut"
+		},
+		{
+			"action":"ADD_FORM_INSTANCE_RECORD",
+			"resource":"com.liferay.dynamic.data.mapping.model.DDMFormInstance"
+		},
+		{
+			"action":"VIEW",
+			"resource":"com.liferay.dynamic.data.mapping.model.DDMFormInstance"
+		},
+		{
+			"action":"UPDATE",
+			"resource":"com.liferay.dynamic.data.mapping.model.DDMFormInstance"
 		}
-    ]
+	]
 }

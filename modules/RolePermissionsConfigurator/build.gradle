@@ -1,7 +1,8 @@
 dependencies {
 	compileOnly group: "com.liferay.portal", name: "com.liferay.portal.kernel"
 	compileOnly group: "org.osgi", name: "org.osgi.service.component.annotations"
-	
+	compileOnly group: "com.liferay", name: "com.liferay.dynamic.data.mapping.api"
+	compileOnly group: "com.liferay", name: "com.liferay.configuration.admin.api"
 	
 	// This dependency is ussually the issue of NoClassDefFoundError
 	testCompile group: "com.liferay", name: "com.liferay.petra.lang", version: "4.0.1"
